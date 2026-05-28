@@ -3,29 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CrazyStack - Dark Gray</title>
+    <title>CrazyStack - Coming Soon</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
-        /* =========================================
-           RESET & DARK GRAY THEME
-           ========================================= */
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
         
         :root {
-            /* Dark Gray/Slate Palette */
-            --bg-deep: #1f2937;       /* Dark Slate/Gray Body */
-            --bg-surface: #111827;     /* Darker Navy/Gray Panel */
+            --bg-deep: #1f2937;
+            --bg-surface: #111827;
             --bg-glass: rgba(17, 24, 39, 0.85);
             --border-subtle: rgba(255,255,255,0.08);
-            
-            --text-primary: #f1f5f9;     /* Off-white */
-            --text-secondary: #94a3b8;   /* Muted Gray */
-            
-            --accent-gold: #fbbf24;     /* Gold */
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-dim: #64748b;
+            --accent-gold: #fbbf24;
             --success: #10b981;
             --info: #3b82f6;
-            
             --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.5);
         }
 
@@ -41,7 +36,6 @@
             align-items: center;
         }
 
-        /* Ambient Glow */
         body::before {
             content: '';
             position: fixed;
@@ -52,9 +46,6 @@
             pointer-events: none;
         }
 
-        /* =========================================
-           LAYOUT
-           ========================================= */
         .app-container {
             width: 100%;
             height: 100%;
@@ -123,9 +114,6 @@
         .status-badge.win { color: var(--success); }
         .status-badge.lose { color: #ef4444; }
 
-        /* =========================================
-           WHEEL
-           ========================================= */
         .wheel-wrapper {
             position: relative;
             width: min(70vw, 45vh, 300px);
@@ -154,9 +142,6 @@
             z-index: 10;
         }
 
-        /* =========================================
-           SIDEBAR
-           ========================================= */
         .sidebar-controls {
             background: var(--bg-surface);
             border-top: 1px solid var(--border-subtle);
@@ -171,7 +156,6 @@
 
         .sidebar-controls::-webkit-scrollbar { width: 0; }
 
-        /* Color Grid */
         .color-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -201,12 +185,8 @@
 
         .chip-odds { display: block; font-size: 0.55rem; margin-top: 2px; opacity: 0.8; font-weight: 500; }
 
-        /* =========================================
-           ACTION ROW (RESPONSIVE)
-           ========================================= */
         .action-row {
             display: flex;
-            /* DEFAULT DESKTOP: Vertical Stack */
             flex-direction: column; 
             gap: 10px;
             width: 100%;
@@ -258,33 +238,21 @@
         }
         .deposit-btn:hover { background: rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.5); }
 
-        /* =========================================
-           MOBILE (SMALL SCREEN) OVERRIDES
-           ========================================= */
         @media (max-width: 1023px) {
             .action-row {
-                flex-direction: row; /* HORIZONTAL */
+                flex-direction: row;
                 align-items: center;
                 gap: 8px;
             }
-            .wager-input { 
-                flex: 1; /* Expand input */
-            }
-            .btn-row-action {
-                width: auto;
-                flex-shrink: 0;
-            }
+            .wager-input { flex: 1; }
+            .btn-row-action { width: auto; flex-shrink: 0; }
         }
 
-        /* =========================================
-           DESKTOP LAYOUT
-           ========================================= */
         @media (min-width: 1024px) {
             .app-container {
-                grid-template-columns: 1fr 220px; /* Narrow sidebar */
+                grid-template-columns: 1fr 220px;
                 grid-template-rows: 1fr;
             }
-
             .sidebar-controls {
                 border-top: none;
                 border-left: 1px solid var(--border-subtle);
@@ -293,23 +261,15 @@
                 overflow: hidden;
                 justify-content: center;
             }
-
             .game-stage { padding: 0; }
-
             .wheel-wrapper {
                 width: min(40vw, 400px);
                 height: min(40vw, 400px);
                 margin-top: 0;
             }
-            
-            .info-bar {
-                width: 90%; max-width: 1000px; border-radius: 16px;
-            }
+            .info-bar { width: 90%; max-width: 1000px; border-radius: 16px; }
         }
 
-        /* =========================================
-           TOAST & CONFETTI
-           ========================================= */
         .toast {
             position: fixed;
             top: 30px;
@@ -325,7 +285,7 @@
             opacity: 0;
             pointer-events: none;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 100;
+            z-index: 200;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             display: flex;
             align-items: center;
@@ -337,13 +297,187 @@
 
         .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
 
+        /* =========================================
+           COMING SOON OVERLAY
+           ========================================= */
+        .cs-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 39, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            animation: overlayIn 0.6s ease-out both;
+        }
+
+        @keyframes overlayIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .cs-card {
+            width: 90%;
+            max-width: 360px;
+            background: linear-gradient(165deg, rgba(31, 41, 55, 0.95), rgba(17, 24, 39, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2.5rem 2rem 2rem;
+            text-align: center;
+            box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.6),
+                        0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+            position: relative;
+            overflow: hidden;
+            animation: cardUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+        }
+
+        @keyframes cardUp {
+            from { opacity: 0; transform: translateY(24px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .cs-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 15%; right: 15%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.4), transparent);
+        }
+
+        .cs-icon {
+            width: 64px; height: 64px;
+            margin: 0 auto 1.25rem;
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.15);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: iconFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .cs-icon i {
+            font-size: 1.6rem;
+            color: var(--accent-gold);
+        }
+
+        .cs-badge {
+            display: inline-block;
+            padding: 0.3rem 0.85rem;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 50px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-gold);
+            margin-bottom: 1rem;
+        }
+
+        .cs-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .cs-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+            margin-bottom: 1.5rem;
+        }
+
+        .cs-features {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1.75rem;
+            text-align: left;
+        }
+
+        .cs-feat {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        .cs-feat-dot {
+            width: 22px; height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.65rem;
+        }
+
+        .cs-feat-dot.green { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+        .cs-feat-dot.blue { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+        .cs-feat-dot.gold { background: rgba(251, 191, 36, 0.12); color: #fbbf24; }
+
+        .cs-notify {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, var(--accent-gold), #d97706);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(251, 191, 36, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .cs-notify:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4); }
+        .cs-notify:active { transform: scale(0.98); }
+        .cs-notify i { font-size: 1rem; }
+
+        .cs-notify.sent {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
+            pointer-events: none;
+        }
+
+        .cs-footer {
+            margin-top: 1rem;
+            font-size: 0.68rem;
+            color: var(--text-dim);
+        }
+
+        @media (max-width: 480px) {
+            .cs-card { padding: 2rem 1.5rem 1.5rem; border-radius: 20px; }
+            .cs-title { font-size: 1.3rem; }
+            .cs-icon { width: 56px; height: 56px; border-radius: 14px; }
+            .cs-icon i { font-size: 1.4rem; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .cs-overlay, .cs-card { animation: none; }
+            .cs-icon { animation: none; }
+        }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         
-        <!-- LEFT STAGE (Wheel) -->
         <div class="game-stage">
             
             <div class="info-bar">
@@ -360,10 +494,8 @@
             </div>
         </div>
 
-        <!-- RIGHT SIDEBAR -->
         <div class="sidebar-controls">
             
-            <!-- Color Grid -->
             <div class="color-grid">
                 <button class="color-chip chip-green" data-color="green">
                     Green<span class="chip-odds">1.6x</span>
@@ -376,13 +508,45 @@
                 </button>
             </div>
 
-            <!-- ACTION ROW (Responsive) -->
             <div class="action-row">
                 <input type="number" class="wager-input" id="wagerInput" placeholder="Amt" min="50">
                 <button class="btn-row-action spin-btn" id="spinAction">SPIN</button>
                 <button class="btn-row-action deposit-btn" id="depositBtn">DEPOSIT</button>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Coming Soon Overlay -->
+    <div class="cs-overlay" id="csOverlay">
+        <div class="cs-card">
+            <div class="cs-icon">
+                <i class="bi bi-stars"></i>
+            </div>
+            <div class="cs-badge">Demo Preview</div>
+            <h2 class="cs-title">Coming Soon</h2>
+            <p class="cs-desc">
+                We're putting the final touches on the full experience. Here's a sneak peek at what's ahead.
+            </p>
+            <div class="cs-features">
+                <div class="cs-feat">
+                    <span class="cs-feat-dot green"><i class="bi bi-check-lg"></i></span>
+                    <span>Real-time multiplayer spinning</span>
+                </div>
+                <div class="cs-feat">
+                    <span class="cs-feat-dot blue"><i class="bi bi-check-lg"></i></span>
+                    <span>Instant deposits & withdrawals</span>
+                </div>
+                <div class="cs-feat">
+                    <span class="cs-feat-dot gold"><i class="bi bi-check-lg"></i></span>
+                    <span>Live leaderboards & rewards</span>
+                </div>
+            </div>
+            <button class="cs-notify" id="notifyBtn">
+                <i class="bi bi-bell"></i>
+                <span id="notifyText">Notify Me When Ready</span>
+            </button>
+            <p class="cs-footer">This is a preview build — no real transactions.</p>
         </div>
     </div>
 
@@ -487,6 +651,16 @@
             setTimeout(() => t.className = 'toast', 3000);
         }
 
+        /* ── Notify Button Logic ── */
+        document.getElementById('notifyBtn').addEventListener('click', function() {
+            const btn = this;
+            const txt = document.getElementById('notifyText');
+            btn.classList.add('sent');
+            btn.querySelector('i').className = 'bi bi-check-circle';
+            txt.textContent = 'You\'re on the list!';
+            soundEngine.clickSound();
+        });
+
         class CrazyStackDemo {
             constructor() {
                 this.currentBalance = 5000;
@@ -531,12 +705,10 @@
                     }
                 });
                 ctx.restore();
-                // Rim
                 ctx.beginPath(); ctx.arc(cX,cY,r,0,Math.PI*2);
                 ctx.lineWidth=26; ctx.strokeStyle='#0f172a'; ctx.stroke();
                 ctx.beginPath(); ctx.arc(cX,cY,r-14,0,Math.PI*2);
                 ctx.lineWidth=4; ctx.strokeStyle='#1f2937'; ctx.stroke();
-                // Center
                 const hG=ctx.createRadialGradient(cX,cY,10,cX,cY,90);
                 hG.addColorStop(0,'#334155'); hG.addColorStop(1,'#1f2937');
                 ctx.beginPath(); ctx.arc(cX,cY,90,0,Math.PI*2); ctx.fillStyle=hG; ctx.fill();

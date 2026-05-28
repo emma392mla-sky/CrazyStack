@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrazyStacks v2.0 Download</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #09090b;
+    }
+    .bump {
+      transform: scale(1.2);
+    }
+    .counter-num {
+      display: inline-block;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Tiny spinner */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(0, 0, 0, 0.15);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+
+<body class="bg-[#09090b] text-white min-h-screen flex items-center justify-center px-4">
+
+  <div class="w-full max-w-sm text-center">
+
+    <h1 class="text-3xl font-extrabold tracking-tight mb-1">CrazyStacks</h1>
+    <p class="text-green-400 text-xs font-semibold tracking-widest uppercase mb-6">Version 2.0</p>
+
+    <p class="text-zinc-500 text-sm mb-8">Download the latest update with improved performance and features.</p>
+
+    <button id="downloadBtn" onclick="handleDownload()"
+      class="w-full bg-green-500 hover:bg-green-400 active:scale-[0.97] transition-all text-black font-bold py-3 rounded-xl mb-6 cursor-pointer">
+      <span id="btnLabel">Download Now</span>
+    </button>
+
+    <div class="inline-flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-2">
+      <span class="text-zinc-500 text-xs">Downloads</span>
+      <span id="counter" class="counter-num text-green-400 font-bold text-sm">--</span>
+    </div>
+
+    <div class="mt-4 text-[11px] text-zinc-700">Android APK &bull; Lightweight &bull; Secure</div>
+
+  </div>
+
+  <!-- Minimal toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 border border-zinc-800 text-green-400 text-xs px-4 py-2 rounded-lg opacity-0 transition-all duration-300 pointer-events-none z-50"></div>
+
+  <script>
+    const SUPABASE_URL = "https://awnzbiatwnfmryerfxwg.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bnpiaWF0d25mbXJ5ZXJmeHdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3NzI3NzcsImV4cCI6MjA5MjM0ODc3N30.yIxpa2cguXFE44PlcTy1a3FaLX7Z57geskmnXEmkFKg";
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const counterEl = document.getElementById("counter");
+    const btn = document.getElementById("downloadBtn");
+    const btnLabel = document.getElementById("btnLabel");
+    let counterRowId = null;
+
+    function formatNum(n) { return Number(n).toLocaleString(); }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.opacity = "1";
+      setTimeout(() => t.style.opacity = "0", 2000);
+    }
+
+    async function fetchCount() {
+      try {
+        const { data, error } = await db
+          .from("downloads")
+          .select("id, counts")
+          .order("id", { ascending: false })
+          .limit(1);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          counterRowId = data[0].id;
+          counterEl.textContent = formatNum(data[0].counts || 0);
+        } else {
+          const { data: newRow, error: insertErr } = await db
+            .from("downloads")
+            .insert({ counts: 0 })
+            .select()
+            .single();
+          if (insertErr) throw insertErr;
+          counterRowId = newRow.id;
+          counterEl.textContent = "0";
+        }
+      } catch (err) {
+        console.error(err);
+        counterEl.textContent = "--";
+      }
+    }
+
+    async function handleDownload() {
+      btn.style.pointerEvents = "none";
+      btnLabel.innerHTML = '<span class="spinner"></span>';
+
+      try {
+        if (!counterRowId) await fetchCount();
+
+        const { data: current } = await db
+          .from("downloads")
+          .select("counts")
+          .eq("id", counterRowId)
+          .single();
+
+        const newCount = (current.counts || 0) + 1;
+
+        await db
+          .from("downloads")
+          .update({ counts: newCount })
+          .eq("id", counterRowId);
+
+        counterEl.textContent = formatNum(newCount);
+        counterEl.classList.add("bump");
+        setTimeout(() => counterEl.classList.remove("bump"), 250);
+
+        await new Promise(r => setTimeout(r, 600));
+
+        const a = document.createElement("a");
+        a.href = "CrazyStack.apk";
+        a.download = "CrazyStack.apk";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        showToast("Download started!");
+
+      } catch (err) {
+        console.error(err);
+        showToast("Something went wrong");
+      }
+
+      btnLabel.textContent = "Download Now";
+      btn.style.pointerEvents = "";
+    }
+
+    fetchCount();
+  </script>
+</body>
+</html>
