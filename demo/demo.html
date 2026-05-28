@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CrazyStack - Dark Gray</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        /* =========================================
+           RESET & DARK GRAY THEME
+           ========================================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        :root {
+            /* Dark Gray/Slate Palette */
+            --bg-deep: #1f2937;       /* Dark Slate/Gray Body */
+            --bg-surface: #111827;     /* Darker Navy/Gray Panel */
+            --bg-glass: rgba(17, 24, 39, 0.85);
+            --border-subtle: rgba(255,255,255,0.08);
+            
+            --text-primary: #f1f5f9;     /* Off-white */
+            --text-secondary: #94a3b8;   /* Muted Gray */
+            
+            --accent-gold: #fbbf24;     /* Gold */
+            --success: #10b981;
+            --info: #3b82f6;
+            
+            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.5);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Ambient Glow */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* =========================================
+           LAYOUT
+           ========================================= */
+        .app-container {
+            width: 100%;
+            height: 100%;
+            display: grid;
+            grid-template-rows: 1fr auto;
+            grid-template-columns: 1fr;
+            overflow: hidden;
+        }
+
+        .game-stage {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .info-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 20;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 20px;
+            border-radius: 50px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .balance-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .balance-label {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .balance-text {
+            font-weight: 700;
+            color: var(--accent-gold);
+            font-family: 'SF Mono', monospace;
+            font-size: 1rem;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-left: 15px;
+        }
+        .status-badge.win { color: var(--success); }
+        .status-badge.lose { color: #ef4444; }
+
+        /* =========================================
+           WHEEL
+           ========================================= */
+        .wheel-wrapper {
+            position: relative;
+            width: min(70vw, 45vh, 300px);
+            height: min(70vw, 45vh, 300px);
+            margin-top: 20px;
+            filter: drop-shadow(0 0 50px rgba(0,0,0,0.3));
+        }
+
+        .wheel-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            transition: transform 4.5s cubic-bezier(0.15, 0.85, 0.15, 1.0);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; height: 0; 
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 24px solid var(--accent-gold);
+            filter: drop-shadow(0 4px 8px rgba(251, 191, 36, 0.4));
+            z-index: 10;
+        }
+
+        /* =========================================
+           SIDEBAR
+           ========================================= */
+        .sidebar-controls {
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-subtle);
+            padding: 14px; 
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 30;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.3);
+            overflow-y: auto;
+        }
+
+        .sidebar-controls::-webkit-scrollbar { width: 0; }
+
+        /* Color Grid */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .color-chip {
+            position: relative;
+            padding: 10px 2px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background: rgba(255,255,255,0.03);
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .color-chip:hover { background: rgba(255,255,255,0.06); transform: translateY(-1px); }
+        .color-chip.selected { transform: scale(1.05); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+        .chip-green.selected { background: linear-gradient(135deg, #10b981, #059669); border-color: #10b981; }
+        .chip-blue.selected { background: linear-gradient(135deg, #3b82f6, #2563eb); border-color: #3b82f6; }
+        .chip-red.selected { background: linear-gradient(135deg, #ef4444, #dc2626); border-color: #ef4444; }
+
+        .chip-odds { display: block; font-size: 0.55rem; margin-top: 2px; opacity: 0.8; font-weight: 500; }
+
+        /* =========================================
+           ACTION ROW (RESPONSIVE)
+           ========================================= */
+        .action-row {
+            display: flex;
+            /* DEFAULT DESKTOP: Vertical Stack */
+            flex-direction: column; 
+            gap: 10px;
+            width: 100%;
+        }
+
+        .wager-input {
+            width: 100%;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: var(--accent-gold);
+            font-family: 'SF Mono', monospace;
+            font-size: 0.9rem;
+            font-weight: 600;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .wager-input:focus { 
+            background: rgba(0,0,0,0.5);
+            border-color: var(--accent-gold); 
+            box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.1);
+        }
+
+        .btn-row-action {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .spin-btn {
+            background: linear-gradient(135deg, var(--accent-gold), #d97706);
+            color: #000;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+        }
+        .spin-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 15px rgba(251, 191, 36, 0.5); }
+        .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+        .deposit-btn {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .deposit-btn:hover { background: rgba(16, 185, 129, 0.25); border-color: rgba(16, 185, 129, 0.5); }
+
+        /* =========================================
+           MOBILE (SMALL SCREEN) OVERRIDES
+           ========================================= */
+        @media (max-width: 1023px) {
+            .action-row {
+                flex-direction: row; /* HORIZONTAL */
+                align-items: center;
+                gap: 8px;
+            }
+            .wager-input { 
+                flex: 1; /* Expand input */
+            }
+            .btn-row-action {
+                width: auto;
+                flex-shrink: 0;
+            }
+        }
+
+        /* =========================================
+           DESKTOP LAYOUT
+           ========================================= */
+        @media (min-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr 220px; /* Narrow sidebar */
+                grid-template-rows: 1fr;
+            }
+
+            .sidebar-controls {
+                border-top: none;
+                border-left: 1px solid var(--border-subtle);
+                box-shadow: -10px 0 30px rgba(0,0,0,0.3);
+                height: 100%;
+                overflow: hidden;
+                justify-content: center;
+            }
+
+            .game-stage { padding: 0; }
+
+            .wheel-wrapper {
+                width: min(40vw, 400px);
+                height: min(40vw, 400px);
+                margin-top: 0;
+            }
+            
+            .info-bar {
+                width: 90%; max-width: 1000px; border-radius: 16px;
+            }
+        }
+
+        /* =========================================
+           TOAST & CONFETTI
+           ========================================= */
+        .toast {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-subtle);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { border-color: #ef4444; color: #fca5a5; }
+        .toast.success { border-color: var(--success); color: #6ee7b7; }
+
+        .confetti-container { position: fixed; inset: 0; pointer-events: none; z-index: 50; overflow: hidden; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- LEFT STAGE (Wheel) -->
+        <div class="game-stage">
+            
+            <div class="info-bar">
+                <div class="balance-pill">
+                    <span class="balance-label">Balance</span>
+                    <span class="balance-text" id="displayBalance">MWK 0.00</span>
+                </div>
+                <div class="status-badge" id="statusIndicator">Pick Color</div>
+            </div>
+
+            <div class="wheel-wrapper">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheelCanvas" width="800" height="800" class="wheel-canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR -->
+        <div class="sidebar-controls">
+            
+            <!-- Color Grid -->
+            <div class="color-grid">
+                <button class="color-chip chip-green" data-color="green">
+                    Green<span class="chip-odds">1.6x</span>
+                </button>
+                <button class="color-chip chip-blue" data-color="blue">
+                    Blue<span class="chip-odds">2.4x</span>
+                </button>
+                <button class="color-chip chip-red" data-color="red">
+                    Red<span class="chip-odds">4.8x</span>
+                </button>
+            </div>
+
+            <!-- ACTION ROW (Responsive) -->
+            <div class="action-row">
+                <input type="number" class="wager-input" id="wagerInput" placeholder="Amt" min="50">
+                <button class="btn-row-action spin-btn" id="spinAction">SPIN</button>
+                <button class="btn-row-action deposit-btn" id="depositBtn">DEPOSIT</button>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="toast" id="toastElement"></div>
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script>
+        const WHEEL_CONFIG = {
+            segments: [
+                { name: 'Green', key: 'green', hexColor: '#10b981', multiplier: 1.6, slots: 3 },
+                { name: 'Blue', key: 'blue', hexColor: '#3b82f6', multiplier: 2.4, slots: 2 },
+                { name: 'Red', key: 'red', hexColor: '#ef4444', multiplier: 4.8, slots: 1 },
+                { name: 'Gray', key: 'gray', hexColor: '#64748b', multiplier: 0, slots: 2 }
+            ],
+            minimumBet: 50,
+            totalSegments: 8
+        };
+
+        class SoundEngine {
+            constructor() { 
+                this.isEnabled = true; 
+                this.audioContext = null; 
+                this.tickTimer = null; 
+                this.initContext(); 
+            }
+            initContext() { try { this.audioContext = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {} }
+            playTone(freq = 850, dur = 0.1, type = 'sine') { 
+                if(!this.isEnabled || !this.audioContext) return; 
+                try { 
+                    if(this.audioContext.state === 'suspended') this.audioContext.resume(); 
+                    const o = this.audioContext.createOscillator(), g = this.audioContext.createGain(); 
+                    o.connect(g); g.connect(this.audioContext.destination); 
+                    o.frequency.value = freq; o.type = type; 
+                    const n = this.audioContext.currentTime; 
+                    g.gain.setValueAtTime(0.1, n); 
+                    g.gain.exponentialRampToValueAtTime(0.001, n + dur); 
+                    o.start(n); o.stop(n + dur); 
+                } catch(e) {} 
+            }
+            clickSound() { this.playTone(900, 0.05); }
+            successSound() { 
+                this.playTone(523, 0.12); 
+                setTimeout(() => this.playTone(659, 0.12), 120); 
+                setTimeout(() => this.playTone(784, 0.18), 240); 
+            }
+            errorSound() { this.playTone(220, 0.25, 'square'); }
+            playBikeClick(intensity = 1) { 
+                if(!this.isEnabled || !this.audioContext) return; 
+                try { 
+                    if(this.audioContext.state === 'suspended') this.audioContext.resume(); 
+                    const ctx = this.audioContext, now = ctx.currentTime, bs = ctx.sampleRate * 0.02, 
+                    buf = ctx.createBuffer(1, bs, ctx.sampleRate), d = buf.getChannelData(0);
+                    for(let i=0;i<bs;i++) d[i]=(Math.random()*2-1)*Math.exp(-i/(bs*0.3));
+                    const ns=ctx.createBufferSource(); ns.buffer=buf;
+                    const f=ctx.createBiquadFilter(); f.type='bandpass'; f.frequency.value=2500+Math.random()*1500; f.Q.value=2;
+                    const g=ctx.createGain(); g.gain.setValueAtTime(0.12*intensity,now); g.gain.exponentialRampToValueAtTime(0.001,now+0.025);
+                    ns.connect(f); f.connect(g); g.connect(ctx.destination); ns.start(now); ns.stop(now+0.03); 
+                } catch(e) {} 
+            }
+            startBicycleSpin(onComplete) { 
+                this.stopBicycleSpin(); 
+                let t=0; const m=80; 
+                const d=()=>{
+                    if(t>=m){ if(onComplete) onComplete(); return; } 
+                    this.playBikeClick(Math.max(0.2, 1-Math.pow(t/m,1.5))); t++; 
+                    let dl;
+                    if(t<20) dl=70+t*1.5;
+                    else if(t<45) dl=100*Math.pow(1.06,t-20);
+                    else if(t<70) dl=280*Math.pow(1.04,t-45);
+                    else dl=450+t*15;
+                    if(dl>700) dl=700;
+                    this.tickTimer=setTimeout(d,dl);
+                }; d(); 
+            }
+            stopBicycleSpin() { 
+                if(this.tickTimer){ clearTimeout(this.tickTimer); this.tickTimer=null; } 
+            }
+            playStopSound() { 
+                if(!this.isEnabled||!this.audioContext)return; 
+                try{
+                    const c=this.audioContext,n=c.currentTime;
+                    [0,80].forEach(d=>{
+                        const o=c.createOscillator(), g=c.createGain(), f=c.createBiquadFilter();
+                        o.type='square'; o.frequency.value=180; f.type='lowpass'; f.frequency.value=800;
+                        g.gain.setValueAtTime(0.15,n+d/1000);
+                        g.gain.exponentialRampToValueAtTime(0.001,n+(d+100)/1000);
+                        o.connect(f); f.connect(g); g.connect(c.destination);
+                        o.start(n+d/1000); o.stop(n+(d+120)/1000);
+                    });
+                }catch(e){} 
+            }
+        }
+        const soundEngine = new SoundEngine();
+
+        function showToast(msg, type='') {
+            const t = document.getElementById('toastElement');
+            t.innerHTML = type === 'success' ? `<i class="bi bi-check-circle-fill"></i> ${msg}` : 
+                         type === 'error' ? `<i class="bi bi-x-circle-fill"></i> ${msg}` : msg;
+            t.className = `toast visible ${type}`;
+            if(type==='success') soundEngine.successSound();
+            else if(type==='error') soundEngine.errorSound();
+            setTimeout(() => t.className = 'toast', 3000);
+        }
+
+        class CrazyStackDemo {
+            constructor() {
+                this.currentBalance = 5000;
+                this.selectedColor = null;
+                this.isWheelSpinning = false;
+                this.wheelRotationAngle = 0;
+                this.canvasElement = document.getElementById('wheelCanvas');
+                this.canvasContext = this.canvasElement ? this.canvasElement.getContext('2d') : null;
+                this.init();
+            }
+
+            init() {
+                this.drawWheel();
+                this.updateBalance();
+                this.attachListeners();
+            }
+
+            updateBalance() {
+                const el = document.getElementById('displayBalance');
+                if(el) el.textContent = `MWK ${this.currentBalance.toFixed(2)}`;
+            }
+
+            drawWheel() {
+                if(!this.canvasContext) return;
+                const ctx=this.canvasContext, cX=400, cY=400, r=385, tS=WHEEL_CONFIG.totalSegments, aS=(Math.PI*2)/tS;
+                ctx.clearRect(0,0,800,800);
+                ctx.save(); ctx.translate(cX,cY); ctx.rotate(-Math.PI/2); ctx.translate(-cX,-cY);
+                let sA=0;
+                WHEEL_CONFIG.segments.forEach(seg=>{
+                    for(let i=0;i<seg.slots;i++){
+                        ctx.beginPath(); ctx.moveTo(cX,cY); ctx.arc(cX,cY,r,sA,sA+aS);
+                        ctx.fillStyle=seg.hexColor; ctx.fill(); 
+                        ctx.strokeStyle='rgba(0,0,0,0.2)'; ctx.lineWidth=2; ctx.stroke();
+                        ctx.save(); ctx.translate(cX,cY); ctx.rotate(sA+aS/2);
+                        ctx.textAlign='right'; 
+                        ctx.fillStyle=seg.key==='gray'?'#a1a1aa':'#ffffff';
+                        ctx.font='bold 46px Inter, sans-serif'; ctx.shadowColor='rgba(0,0,0,0.4)'; ctx.shadowBlur=4;
+                        ctx.fillText(seg.name,r-50,14);
+                        ctx.font='30px Inter, sans-serif'; ctx.fillStyle='rgba(255,255,255,0.7)';
+                        ctx.fillText(seg.multiplier+'x',r-50,56); ctx.restore();
+                        sA+=aS;
+                    }
+                });
+                ctx.restore();
+                // Rim
+                ctx.beginPath(); ctx.arc(cX,cY,r,0,Math.PI*2);
+                ctx.lineWidth=26; ctx.strokeStyle='#0f172a'; ctx.stroke();
+                ctx.beginPath(); ctx.arc(cX,cY,r-14,0,Math.PI*2);
+                ctx.lineWidth=4; ctx.strokeStyle='#1f2937'; ctx.stroke();
+                // Center
+                const hG=ctx.createRadialGradient(cX,cY,10,cX,cY,90);
+                hG.addColorStop(0,'#334155'); hG.addColorStop(1,'#1f2937');
+                ctx.beginPath(); ctx.arc(cX,cY,90,0,Math.PI*2); ctx.fillStyle=hG; ctx.fill();
+                ctx.lineWidth=6; ctx.strokeStyle='#fbbf24'; ctx.stroke();
+                ctx.fillStyle='#fbbf24'; ctx.font='bold 36px Inter, sans-serif';
+                ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('CS',cX,cY);
+            }
+
+            selectColor(color) {
+                if(this.isWheelSpinning) return;
+                this.selectedColor = color;
+                document.querySelectorAll('.color-chip').forEach(b => b.classList.remove('selected'));
+                document.querySelector(`.chip-${color}`).classList.add('selected');
+                const sb = document.getElementById('statusIndicator');
+                sb.textContent = color.toUpperCase();
+                sb.className = 'status-badge';
+            }
+
+            spin() {
+                if(this.isWheelSpinning) return;
+                const wager = parseFloat(document.getElementById('wagerInput').value);
+                if(!this.selectedColor) return showToast('Pick a color', 'error');
+                if(!wager || wager < WHEEL_CONFIG.minimumBet) return showToast(`Min ${WHEEL_CONFIG.minimumBet}`, 'error');
+                if(wager > this.currentBalance) return showToast('No funds', 'error');
+
+                this.currentBalance -= wager;
+                this.updateBalance();
+                this.isWheelSpinning = true;
+                
+                document.getElementById('spinAction').disabled = true;
+                document.querySelectorAll('.color-chip').forEach(b => b.style.pointerEvents = 'none');
+                document.getElementById('statusIndicator').textContent = '...';
+                document.getElementById('statusIndicator').className = 'status-badge';
+
+                soundEngine.startBicycleSpin(() => {});
+
+                const winnerIndex = Math.floor(Math.random() * 8);
+                this.animateWheel(winnerIndex, wager);
+            }
+
+            animateWheel(targetIndex, wager) {
+                const tS=WHEEL_CONFIG.totalSegments, dPS=360/tS, 
+                      tCA=(targetIndex*dPS)+(dPS/2), fP=360-tCA, 
+                      fS=10*360, rJ=(Math.random()*16)-8, 
+                      cAM=this.wheelRotationAngle%360, 
+                      a=(fP-cAM+360)%360, tR=this.wheelRotationAngle+fS+a+rJ;
+                this.canvasElement.style.transform=`rotate(${tR}deg)`;
+                this.wheelRotationAngle = tR;
+
+                setTimeout(() => {
+                    if(this.isWheelSpinning) {
+                        soundEngine.stopBicycleSpin();
+                        soundEngine.playStopSound();
+                        this.processResult(targetIndex, wager);
+                    }
+                }, 4500);
+            }
+
+            processResult(targetIndex, wager) {
+                let counter = 0, winSeg = null;
+                for(const seg of WHEEL_CONFIG.segments) {
+                    for(let s=0; s<seg.slots; s++) {
+                        if(counter === targetIndex) winSeg = seg;
+                        counter++;
+                    }
+                    if(winSeg) break;
+                }
+
+                const isWin = (winSeg.key === this.selectedColor && winSeg.key !== 'gray');
+                const sb = document.getElementById('statusIndicator');
+
+                this.isWheelSpinning = false;
+                document.getElementById('spinAction').disabled = false;
+                document.querySelectorAll('.color-chip').forEach(b => b.style.pointerEvents = 'auto');
+
+                if(isWin) {
+                    const profit = wager * winSeg.multiplier;
+                    this.currentBalance += profit;
+                    this.updateBalance();
+                    sb.textContent = 'WIN';
+                    sb.className = 'status-badge win';
+                    showToast(`+MWK ${profit.toFixed(2)}`, 'success');
+                    this.confetti();
+                    soundEngine.successSound();
+                } else {
+                    sb.textContent = 'LOSS';
+                    sb.className = 'status-badge lose';
+                    showToast('Try again', 'error');
+                    soundEngine.errorSound();
+                }
+            }
+
+            confetti() {
+                const c = document.getElementById('confettiContainer');
+                c.innerHTML = '';
+                const colors = ['#fbbf24', '#10b981', '#3b82f6', '#ef4444'];
+                for(let i=0; i<60; i++) {
+                    const p = document.createElement('div');
+                    const size = Math.random() * 8 + 4;
+                    p.style.cssText = `
+                        position:absolute; top:-10px; left:${Math.random()*100}%;
+                        width:${size}px; height:${size}px; background:${colors[i%4]};
+                        border-radius:${Math.random()>0.5?'50%':'2px'};
+                        animation:fall ${Math.random()*2+2}s linear forwards;
+                    `;
+                    c.appendChild(p);
+                }
+                const style = document.createElement('style');
+                style.textContent = `@keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity:0; } }`;
+                document.head.appendChild(style);
+                setTimeout(() => c.innerHTML = '', 4000);
+            }
+
+            attachListeners() {
+                document.querySelectorAll('.color-chip').forEach(b => 
+                    b.addEventListener('click', () => {
+                        soundEngine.clickSound();
+                        this.selectColor(b.dataset.color);
+                    })
+                );
+                document.getElementById('spinAction').addEventListener('click', () => this.spin());
+                
+                document.getElementById('depositBtn').addEventListener('click', () => {
+                    this.currentBalance += 1000;
+                    this.updateBalance();
+                    showToast('+1000 MWK', 'success');
+                });
+                
+                window.addEventListener('resize', () => this.drawWheel());
+            }
+        }
+
+        window.crazyStackApp = new CrazyStackDemo();
+    </script>
+</body>
+</html>

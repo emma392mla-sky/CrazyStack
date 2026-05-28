@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires"="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CrazyStack - Wheel of Fortune</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="style/main.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    
+    
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <header class="navbar">
+        <div class="brand">
+            <div class="brand-mark">CS</div>
+            CrazyStack
+        </div>
+        <div class="nav-right">
+            <div class="balance-widget">
+                <i class="bi bi-wallet2 balance-icon"></i>
+                <div class="balance-info">
+                    <span class="balance-label">Balance</span>
+                    <span class="balance-value" id="displayBalance">MWK 0.00</span>
+                </div>
+            </div>
+            <button class="user-chip guest" id="authButton" aria-label="Account" style='display:none;'>
+                <i class="bi bi-person-fill"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Stage -->
+    <main class="stage" id="gameStage">
+        
+         
+     <!-- Status Badge -->
+        <div class="status-indicator" id="statusIndicator" style='display:none;'>Select Your Color</div>
+
+        <!-- Settings Button -->
+        <button class="settings-fab" id="fabSettingsBtn" title="Settings & Options">
+            <i class="bi bi-gear-wide-connected"></i>
+        </button>
+        
+        <!-- Settings Popover - WITH DEMO TOGGLE -->
+        <div class="settings-popover" id="settingsPopover">
+            
+            <!-- Theme Toggle -->
+            <button class="settings-entry" id="themeSettingEntry" type="button">
+                <span class="entry-left">
+                    <i class="bi bi-sun" id="themeIconSvg"></i>
+                    <span class="entry-label">Theme</span>
+                </span>
+                <span class="entry-right">
+                    <span class="status-text" id="themeStatusLabel">DARK</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="themeToggleCheckbox">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </span>
+            </button>
+
+            <!-- Demo Mode Toggle -->
+            <button class="settings-entry" id="demoModeToggleEntry" type="button" style='display:block;'>
+                <span class="entry-left">
+                    <i class="bi bi-play-circle"></i>
+                    <span class="entry-label">Demo</span>
+                </span>
+                <span class="entry-right">
+                    <span class="status-text" id="demoModeStatusLabel">OFF</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="demoModeCheckbox">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </span>
+            </button>
+
+            <div class="settings-divider"></div>
+
+            <!-- Sound Effects Toggle -->
+            <button class="settings-entry" id="soundToggleEntry" type="button">
+                <span class="entry-left">
+                    <i class="bi bi-volume-up"></i>
+                    <span class="entry-label">Sound FX</span>
+                </span>
+                <span class="entry-right">
+                    <span class="status-text" id="sfxStatusLabel">ON</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="sfxToggleCheckbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </span>
+            </button>
+
+            <div class="settings-divider"></div>
+
+            <!-- Background Music Toggle -->
+            <button class="settings-entry" id="musicToggleEntry" type="button">
+                <span class="entry-left">
+                    <i class="bi bi-music-note-beamed"></i>
+                    <span class="entry-label">Music</span>
+                </span>
+                <span class="entry-right">
+                    <span class="status-text" id="musicStatusLabel">OFF</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="musicToggleCheckbox">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </span>
+            </button>
+
+            <!-- Music Volume Slider (shows when music is ON) -->
+            <div class="music-volume-row" id="musicVolumeControl">
+                <label>Volume</label>
+                <input type="range" id="musicVolumeSlider" min="0" max="100" value="30">
+            </div>
+
+            <div class="settings-divider"></div>
+
+            <!-- Logout Button -->
+            <button class="settings-entry" id="logoutSettingEntry" type="button">
+                <span class="entry-left">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span class="entry-label">Logout</span>
+                </span>
+            </button>
+
+        </div>
+
+        <!-- Wheel Container -->
+        <div class="wheel-container" id="wheelContainer">
+            <div class="wheel-pointer"></div>
+            <canvas id="wheelCanvas" width="800" height="800" class="wheel-canvas"></canvas>
+        </div>
+    </main>
+
+    <!-- Demo Container (loads demo.html here) -->
+    <div class="demo-container" id="demoContainer">
+        <!-- demo.html content will be loaded here via JavaScript -->
+    </div>
+
+    <!-- Demo Close Button -->
+    <button class="demo-close-btn" id="demoCloseBtn" title="Exit Demo">
+        <i class="bi bi-x-lg"></i>
+    </button>  
+
+    <!-- Floating Control Deck -->
+    <section class="control-deck" style='border-top:none;'>
+        <div class="color-grid">
+            <button class="color-option option-green" data-color="green">
+                Green<span class="odds">1.6x</span>
+            </button>
+            <button class="color-option option-blue" data-color="blue">
+                Blue<span class="odds">2.4x</span>
+            </button>
+            <button class="color-option option-red" data-color="red">
+                Red<span class="odds">4.8x</span>
+            </button>
+        </div>
+
+        <div class="bet-row">
+            <div class="bet-input-wrap">
+                <input type="number" class="bet-field" id="wagerInput" placeholder="Amount (min 50)" min="50"/>
+            </div>
+            <button class="spin-button" id="spinAction">SPIN</button>
+        </div>
+                    
+        <div class="bet-row" style='display:flex;justify-content:space-between;'>
+            <button class="action-btn btn-deposit" style='min-width:20px; height:30px; border-radius:7px;' onclick="wagerInput.value=this.innerText;">200</button>
+            <button class="action-btn btn-deposit" style='min-width:20px; height:30px; border-radius:7px;' onclick="wagerInput.value=this.innerText;">500</button>
+            <button class="action-btn btn-deposit" style='min-width:20px; height:30px; border-radius:7px;' onclick="wagerInput.value=this.innerText;">1000</button>
+            <button class="action-btn btn-deposit" style='min-width:20px; height:30px; border-radius:7px;' onclick="wagerInput.value=parseFloat(document.getElementById('displayBalance').textContent.replace('MWK', '').trim())">All</button>
+            <button class="action-btn btn-deposit" style='min-width:20px; height:30px; border-radius:12px;' onclick="wagerInput.value=''">Clear</button>
+        </div>
+        
+        <div class="action-grid">
+            <button class="action-btn btn-deposit" id="depositBtn" onclick="group();">
+                <i class="bi bi-plus-circle"></i> Deposit
+            </button>
+           
+            <button class="action-btn btn-withdraw" id="withdrawBtn" onclick="openWithdrawModalFixed()">
+                <i class="bi bi-arrow-up-circle"></i> Withdraw
+            </button>
+        </div>
+    </section>
+
+    <!-- Authentication Modal -->
+    <div class="modal-overlay" id="authModalOverlay">
+        <div class="modal-container">
+            <div class="modal-head">
+                <h2 class="modal-title" id="authModalTitle">Welcome Back</h2>
+                <p class="modal-desc" id="authModalDesc">Sign in to start playing</p>
+            </div>
+
+            <div class="tab-bar">
+                <button class="tab-item current" data-target="loginPanel">Login</button>
+                <button class="tab-item" data-target="signupPanel">Sign Up</button>
+            </div>
+
+            <!-- Login Panel -->
+            <form class="form-panel" id="loginPanel" onsubmit="event.preventDefault();">
+                <div class="field-group">
+                    <label class="field-label">Phone Number</label>
+                    <input type="tel" class="field-input" id="loginPhoneInput" placeholder="0991234567" autocomplete="tel" required/>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">PIN Code</label>
+                    <input type="password" class="field-input" id="loginPinInput" placeholder="Enter your PIN" autocomplete="current-password" required/>
+                </div>
+                <button type="submit" class="primary-action" id="executeLogin">Sign In</button>
+                <p class="auth-switcher"><strong data-target="signupPanel">Create Account</strong></p>
+            </form>
+
+            <!-- Signup Panel -->
+            <form class="form-panel hidden" id="signupPanel" onsubmit="event.preventDefault();">
+                <div class="field-group">
+                    <label class="field-label">Full Name</label>
+                    <input type="text" class="field-input" id="signupNameInput" placeholder="John Doe" autocomplete="name" required/>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Phone Number</label>
+                    <input type="tel" class="field-input" id="signupPhoneInput" placeholder="0991234567" autocomplete="tel" required/>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Create PIN</label>
+                    <input type="password" class="field-input" id="signupPinInput" placeholder="Minimum 4 digits" autocomplete="new-password" minlength="4" required/>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Confirm PIN</label>
+                    <input type="password" class="field-input" id="signupConfirmPinInput" placeholder="Re-enter PIN" autocomplete="new-password" minlength="4" required/>
+                </div>
+                <button type="submit" class="primary-action" id="executeSignup">Create Account</button>
+                <p class="auth-switcher">Already registered? <strong data-target="loginPanel">Sign In</strong></p>
+            </form>
+
+            <button type="button" class="close-modal" id="dismissAuthModal">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal-overlay" id="paymentModalOverlay">
+        <div class="modal-container">
+            <div class="modal-head">
+                <h2 class="modal-title" id="paymentModalTitle">Deposit Funds</h2>
+            </div>
+
+            <form id="paymentForm" onsubmit="event.preventDefault();">
+                <div class="provider-row">
+                    <button type="button" class="provider-choice airtel-network" data-provider="airtel" id='airtel'>Airtel Money</button>
+                    <button type="button" class="provider-choice tnm-network" data-provider="tnm" id='tnm'>TNM mPamba</button>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Phone Number</label>
+                    <input type="tel" class="field-input" id="paymentPhoneInput" placeholder="Enter phone number" required/>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Amount (MWK)</label>
+                    <input type="tel" class="field-input" id="paymentAmountInput" placeholder="Minimum 50 MWK" min="50" required/>
+                </div>
+
+                <button type="submit" class="primary-action" id="confirmPayment" hidden>Proceed to Payment</button>
+                <button type="button" class="primary-action" id="confirmCashout" onclick='collect(true)' hidden>Proceed to Cashout</button>
+                
+                <button type="button" class="close-modal" id="dismissPaymentModal">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <h3 class="confirm-title">Confirm Logout</h3>
+            <p class="confirm-msg">Are you sure you want to logout?</p>
+            <div class="confirm-actions">
+                <button class="btn-confirm yes" id="confirmYes">Yes, Logout</button>
+                <button class="btn-confirm no" id="confirmNo">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-notification" id="toastElement"></div>
+
+    <!-- Session Warning Banner Container -->
+    <div id="sessionWarningContainer"></div>
+
+    <!--WHATSAPP-->
+    <a href="https://wa.me/2659805326903" target="_blank" rel="noopener noreferrer" class="whatsapp-float" title="Chat with Customer Care on WhatsApp" aria-label="Contact Customer Care via WhatsApp">
+        <i class="bi bi-whatsapp"></i>
+    </a>
+
+
+    <script src="API/main.js?v=<?= time() ?>" 
+            onload="console.log('main.js loaded successfully')" 
+            onerror="console.error('FAILED to load main.js')"></script>
+                                
+            
+    <script src="API/withdraw_api.js?v=<?= time() ?>" 
+            onload="console.log('withdraw_api.js loaded - crazy object ready')" 
+            onerror="handleWithdrawAPILoadError()"></script>
+                                
+    <script src="API/index.js?v=<?= time() ?>" 
+            onload="console.log('index.js loaded - crazy object ready')" 
+            onerror="handleWithdrawAPILoadError()"></script>
+    
+
+<script>
+    function handleWithdrawAPILoadError() {
+        console.error('🚨🚨🚨 CRITICAL ERROR: withdraw_api.js FAILED TO LOAD!');
+        console.error('   This will cause "crazy is not defined" error');
+        console.error('');
+        console.error('   POSSIBLE CAUSES:');
+        console.error('   1. File does not exist at: API/withdraw_api.js');
+        console.error('   2. Server returned 404/500 error');
+        console.error('   3. Network connectivity issues');
+        console.error('   4. JavaScript syntax error in the file');
+        console.error('');
+        console.error('   IMMEDIATE FIX:');
+        console.error('   1. Check that API/withdraw_api.js exists on server');
+        console.error('   2. Verify file permissions (should be 644)');
+        console.error('   3. Test URL directly in browser');
+        
+        // Show user-friendly message
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                if (typeof crazy === 'undefined') {
+                    const toast = document.getElementById('toastElement');
+                    if (toast) {
+                        toast.textContent = '⚠️ System partially loaded. Some features may be unavailable.';
+                        toast.className = 'toast-notification type-error visible';
+                        setTimeout(() => toast.classList.remove('visible'), 5000);
+                    }
+                }
+            }, 2000);
+        });
+    }
+    </script>
+    
+    <!-- SESSION MANAGEMENT SCRIPT -->
+    <script>
+    // =============================================
+    // SESSION CONFIGURATION
+    // =============================================
+    const SESSION_CONFIG = {
+        TIMEOUT_DURATION: 5 * 60 * 1000,
+        WARNING_DURATION: 30 * 1000,
+        STORAGE_KEY: 'crazyStackSession',
+        CHECK_INTERVAL: 1000
+    };
+
+    // =============================================
+    // SESSION MANAGER CLASS
+    // =============================================
+    class SessionManager {
+        constructor(appInstance) {
+            this.app = appInstance;
+            this.timeoutTimer = null;
+            this.warningTimer = null;
+            this.checkInterval = null;
+            this.lastActivityTime = Date.now();
+            this.isActive = false;
+            this.warningShown = false;
+            this.warningElement = null;
+
+            console.log('Session Manager initialized');
+            this.setupActivityListeners();
+        }
+
+        start() {
+            if (this.isActive) return;
+            
+            console.log(`Session started - Auto-logout after ${SESSION_CONFIG.TIMEOUT_DURATION / 1000 / 60} minutes`);
+            this.isActive = true;
+            this.lastActivityTime = Date.now();
+            this.startTimers();
+            this.startActivityCheck();
+        }
+
+        stop() {
+            console.log('Session stopped');
+            this.isActive = false;
+            this.clearAllTimers();
+            this.removeWarningBanner();
+        }
+
+        startTimers() {
+            this.clearAllTimers();
+
+            if (!this.isActive || !this.app.isUserAuthenticated) return;
+
+            const timeUntilWarning = SESSION_CONFIG.TIMEOUT_DURATION - SESSION_CONFIG.WARNING_DURATION;
+            
+            this.warningTimer = setTimeout(() => {
+                if (this.isActive && this.app.isUserAuthenticated) {
+                    this.showWarningBanner();
+                }
+            }, timeUntilWarning);
+
+            this.timeoutTimer = setTimeout(() => {
+                if (this.isActive && this.app.isUserAuthenticated) {
+                    this.handleTimeout();
+                }
+            }, SESSION_CONFIG.TIMEOUT_DURATION);
+        }
+
+        clearAllTimers() {
+            if (this.warningTimer) {
+                clearTimeout(this.warningTimer);
+                this.warningTimer = null;
+            }
+            if (this.timeoutTimer) {
+                clearTimeout(this.timeoutTimer);
+                this.timeoutTimer = null;
+            }
+        }
+
+        startActivityCheck() {
+            if (this.checkInterval) clearInterval(this.checkInterval);
+            
+            this.checkInterval = setInterval(() => {
+                if (!this.isActive || !this.app.isUserAuthenticated) {
+                    this.stop();
+                    return;
+                }
+
+                const elapsed = Date.now() - this.lastActivityTime;
+                const remaining = Math.max(0, SESSION_CONFIG.TIMEOUT_DURATION - elapsed);
+
+                if (Math.floor(elapsed / 1000) % 30 === 0 && elapsed > 0) {
+                    console.log(`Session active - ${Math.ceil(remaining / 1000)}s remaining`);
+                }
+
+            }, SESSION_CONFIG.CHECK_INTERVAL);
+        }
+
+        resetTimers() {
+            if (!this.isActive) return;
+            
+            this.lastActivityTime = Date.now();
+            this.warningShown = false;
+            this.removeWarningBanner();
+            this.startTimers();
+            
+            console.log('Session timers reset');
+        }
+
+        setupActivityListeners() {
+            const activityEvents = [
+                'mousedown', 'mousemove', 'keypress', 'scroll', 
+                'touchstart', 'click', 'keydown'
+            ];
+
+            activityEvents.forEach(eventName => {
+                document.addEventListener(eventName, () => {
+                    if (this.isActive && this.app.isUserAuthenticated) {
+                        this.resetTimers();
+                    }
+                }, { passive: true });
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && this.isActive && this.app.isUserAuthenticated) {
+                    const timeAway = Date.now() - this.lastActivityTime;
+                    
+                    if (timeAway >= SESSION_CONFIG.TIMEOUT_DURATION) {
+                        console.log(`User was away for ${Math.floor(timeAway / 1000)}s - forcing logout`);
+                        this.handleTimeout();
+                    } else if (timeAway > 0) {
+                        console.log(`User returned after ${Math.floor(timeAway / 1000)}s away`);
+                        this.resetTimers();
+                    }
+                }
+            });
+
+            console.log('Activity listeners attached');
+        }
+
+        showWarningBanner() {
+            if (this.warningShown || !this.app.isUserAuthenticated) return;
+            
+            this.warningShown = true;
+
+            this.removeWarningBanner();
+
+            this.warningElement = document.createElement('div');
+            this.warningElement.className = 'session-warning-banner';
+            this.warningElement.id = 'sessionWarning';
+            this.warningElement.innerHTML = `
+                <span>Session expiring in ${SESSION_CONFIG.WARNING_DURATION / 1000} seconds...</span>
+                <button onclick="window.crazyStackApp.sessionManager.extendSession()">
+                    Stay Logged In
+                </button>
+            `;
+
+            document.getElementById('sessionWarningContainer').appendChild(this.warningElement);
+
+            try {
+                if (typeof soundEngine !== 'undefined') {
+                    soundEngine.errorSound();
+                }
+            } catch(e) {}
+        }
+
+        removeWarningBanner() {
+            if (this.warningElement && this.warningElement.parentNode) {
+                this.warningElement.remove();
+                this.warningElement = null;
+            }
+            
+            const existing = document.getElementById('sessionWarning');
+            if (existing) existing.remove();
+            
+            this.warningShown = false;
+        }
+
+        extendSession() {
+            console.log('Session extended by user action');
+            this.resetTimers();
+            this.removeWarningBanner();
+            
+            try {
+                if (typeof showToastMessage === 'function') {
+                    showToastMessage('Session extended! You have 5 more minutes.', 'success');
+                }
+            } catch(e) {}
+        }
+
+        handleTimeout() {
+            if (!this.app.isUserAuthenticated) return;
+
+            console.log('SESSION TIMEOUT! Forcing logout...');
+
+            this.stop();
+            this.removeWarningBanner();
+
+            if (this.app.forceLogoutDueToTimeout) {
+                this.app.forceLogoutDueToTimeout();
+            }
+        }
+
+        getRemainingTime() {
+            const elapsed = Date.now() - this.lastActivityTime;
+            return Math.max(0, Math.ceil((SESSION_CONFIG.TIMEOUT_DURATION - elapsed) / 1000));
+        }
+
+        destroy() {
+            this.stop();
+            this.removeWarningBanner();
+            if (this.checkInterval) {
+                clearInterval(this.checkInterval);
+                this.checkInterval = null;
+            }
+        }
+    }
+
+    window.SessionManager = SessionManager;
+    window.SESSION_CONFIG = SESSION_CONFIG;
+
+    console.log('Session Management System Loaded');
+    </script>
+
+    <!-- Application Inline Script -->
+    <script>
+    let a1 = '';
+    let a2 = '';
+
+    window.storage = function(x, y){
+        a1 = y;
+        a2 = x;
+        collect(false);
+    }
+
+   /**
+    * ============================================
+    * 💸 collect() function v5.0 - BULLETPROOF VERSION
+    * ============================================
+    * 
+    * FIXES:
+    * v5.0 - Added defensive check for "crazy is not defined"
+    * v4.0 - Uses ACTUAL input field value, not session phone
+    * 
+    * Handles both:
+    * - Setting phone number (rule=false)
+    * - Processing withdrawal (rule=true)
+    * 
+    * ✅ Uses Project B's users table directly
+    * ✅ No separate payments database calls
+    * ✅ Works with withdraw_api.js
+    * ✅ Handles missing API gracefully
+    */
+   async function collect(rule) {
+   
+     // ============================================
+     // GET PHONE FROM INPUT FIELD (NOT SESSION!)
+     // ============================================
+     
+     // ✅✅✅ CRITICAL FIX: Get from INPUT FIELD only
+     const phoneInputElement = document.getElementById('paymentPhoneInput');
+     let phoneNumber = phoneInputElement ? phoneInputElement.value.trim() : '';
+     
+     // Debug logging
+     console.log('\n📞 collect() called with rule:', rule);
+     console.log('📱 Phone from INPUT FIELD:', phoneNumber);
+     console.log('👤 Session phone (for reference):', window.crazyStackApp?.playerPhone);
+     
+     // Track for debugging
+     if (window.PhoneDebugTracker) {
+         window.PhoneDebugTracker.log('INPUT', phoneNumber);
+     }
+     
+     // Fallback to stored value (from storage() function) ONLY if input empty
+     if (!phoneNumber && a1) {
+         console.log('⚠️ Using fallback phone from storage():', a1);
+         phoneNumber = a1;
+         if (phoneInputElement) phoneInputElement.value = phoneNumber;
+     }
+     
+     // Final validation
+     if (!phoneNumber) {
+         showToastMessage('❌ Phone number is missing!', 'error');
+         console.warn('⚠️ No phone number provided');
+         return;
+     }
+     
+     // Clean and validate phone format
+     const cleanedPhone = phoneNumber.replace(/[\s\-\.]/g, ''); // Remove spaces, dashes, dots
+     
+     // Must be 10 digits starting with 0 (Malawi format: 09XXXXXXXX or 08XXXXXXXX)
+     const validPhonePattern = /^(099|098|088|089)\d{7}$/;
+     
+     if (!validPhonePattern.test(cleanedPhone)) {
+         showToastMessage('❌ Invalid phone format! Use: 09XXXXXXXX or 08XXXXXXXX', 'error');
+         console.warn('⚠️ Invalid phone format:', cleanedPhone);
+         console.warn('   Expected: 099XXXXXXX, 098XXXXXXX, 088XXXXXXX, 089XXXXXXX');
+         console.warn('   Received:', cleanedPhone);
+         return;
+     }
+     
+     console.log('✅ Phone validated (will be sent to webhook):', cleanedPhone);
+     
+     // Track for debugging
+     if (window.PhoneDebugTracker) {
+         window.PhoneDebugTracker.log('WEBHOOK', cleanedPhone);
+     }
+     
+     // ============================================
+     // IF rule=false: JUST SET PHONE NUMBER
+     // ============================================
+     
+     if (!rule) {
+         console.log('📝 Mode: Set phone number only (no action)');
+         return;
+     }
+     
+     // ============================================
+     // IF rule=true: PROCESS WITHDRAWAL
+     // ============================================
+     
+     console.log('\n💸 Mode: PROCESSING WITHDRAWAL');
+     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+     console.log('📤 Phone to use:', cleanedPhone);
+     
+     // Get and validate amount
+     const cashoutAmountStr = document.getElementById('paymentAmountInput').value;
+     const cashoutAmount = parseFloat(cashoutAmountStr) || 0;
+     
+     console.log('💰 Amount entered:', cashoutAmountStr, '→ Parsed:', cashoutAmount);
+     
+     // Validate amount
+     if (isNaN(cashoutAmount) || cashoutAmount <= 0) {
+         showToastMessage('❌ Please enter a valid amount (minimum MWK 50)', 'error');
+         console.warn('⚠️ Invalid amount:', cashoutAmountStr);
+         resetCashoutButton();
+         return;
+     }
+     
+     if (cashoutAmount < 50) {
+         showToastMessage('❌ Minimum withdrawal is MWK 50', 'error');
+         resetCashoutButton();
+         return;
+     }
+     
+     // Show loading state immediately
+     setLoadingState(true);
+     
+     try {
+       
+       // ========================================
+       // STEP 1: CHECK BALANCE FROM PROJECT B
+       // ========================================
+       
+       console.log('\n🔍 Step 1: Checking user balance from Project B...');
+       
+       // Use the crazyStackApp which queries Project B directly
+       if (window.crazyStackApp && window.crazyStackApp.playerPhone) {
+           const currentBalance = window.crazyStackApp.currentBalance;
+           console.log(`📊 Current session balance: MWK ${currentBalance.toFixed(2)}`);
+           
+           // Force fresh fetch from Project B
+           await window.crazyStackApp.forceRefreshBalance('withdrawal-check');
+           const freshBalance = window.crazyStackApp.currentBalance;
+           
+           console.log(`✅ Fresh balance from Project B: MWK ${freshBalance.toFixed(2)}`);
+           
+       const availableBalance = freshBalance;
+       
+       console.log(`   ✅ Available Balance: MWK ${availableBalance.toFixed(2)}`);
+       console.log(`   📤 Requested Amount:  MWK ${cashoutAmount.toFixed(2)}`);
+       
+       // ========================================
+       // STEP 2: VERIFY SUFFICIENT FUNDS
+       // ========================================
+       
+       if (cashoutAmount > availableBalance) {
+           const shortfall = cashoutAmount - availableBalance;
+           
+           console.warn(`\n❌ INSUFFICIENT FUNDS!`);
+           console.warn(`   Shortfall: MWK ${shortfall.toFixed(2)}`);
+           
+           showToastMessage(
+               `❌ Insufficient balance!\nAvailable: MWK ${availableBalance.toFixed(2)}\nRequested: MWK ${cashoutAmount.toFixed(2)}`, 
+               'error'
+           );
+           
+           resetCashoutButton();
+           return;
+       }
+       
+       console.log('   ✅ Sufficient funds confirmed');
+       
+       // ========================================
+       // ✅✅✅ STEP 3: SAFETY CHECK FOR CRAZY OBJECT
+       // ========================================
+       
+       console.log('\n🚀 Step 3: Calling withdrawal API...');
+       console.log(`   Phone: ${cleanedPhone}`);  // ✅ Using validated input phone
+       console.log(`   Amount: MWK ${cashoutAmount.toFixed(2)}`);
+       
+       // ✅✅✅ CRITICAL DEFENSIVE CHECK - Prevents "crazy is not defined" error
+       if (typeof crazy === 'undefined') {
+           console.error('❌ FATAL ERROR: "crazy" object is not defined!');
+           console.error('   This means withdraw_api.js failed to load properly.');
+           console.error('');
+           console.error('   TROUBLESHOOTING STEPS:');
+           console.error('   1. Open browser DevTools (F12)');
+           console.error('   2. Go to Network tab');
+           console.error('   3. Look for "withdraw_api.js" in the list');
+           console.error('   4. If status is red/pink → File not found (404)');
+           console.error('   5. If status is 200 but still fails → Syntax error in file');
+           console.error('');
+           console.error('   QUICK FIX: Refresh page and try again.');
+           
+           setLoadingState(false);
+           
+           showToastMessage(
+               '❌ System error: Withdrawal module not loaded.\n\nPlease refresh the page (F5) and try again.\n\nIf problem persists, contact support.',
+               'error'
+           );
+           
+           resetCashoutButton();
+           return;
+       }
+       
+       // ✅ Check if withdraw method exists
+       if (typeof crazy.withdraw !== 'function') {
+           console.error('❌ FATAL ERROR: crazy.withdraw is not a function!');
+           console.error('   crazy object exists but withdraw method is missing.');
+           console.error('   Object keys:', Object.keys(crazy));
+           
+           setLoadingState(false);
+           showToastMessage('❌ Internal error: Withdrawal method not found.\n\nPlease refresh the page.', 'error');
+           resetCashoutButton();
+           return;
+       }
+       
+       console.log('   ✅ Safety check passed: crazy object and withdraw method are available');
+       
+       // ========================================
+       // STEP 4: CALL WITHDRAWAL API
+       // ========================================
+       
+       const withdrawResult = await crazy.withdraw(cleanedPhone, cashoutAmount);
+       
+       console.log('\n📥 Withdrawal API Response:');
+       console.log('   Success:', withdrawResult.success);
+       console.log('   Message:', withdrawResult.message || withdrawResult.error || '(none)');
+       console.log('   Full Object:', JSON.stringify(withdrawResult, null, 2));
+       
+       // Reset loading state
+       setLoadingState(false);
+       
+       // ========================================
+       // STEP 5: HANDLE RESULT
+       // ========================================
+       
+       if (withdrawResult.success) {
+         
+         // ✅✅✅ SUCCESS!
+         
+         console.log('\n✅✅✅ WITHDRAWAL SUCCESSFUL!');
+         console.log(`   Sent to phone: ${cleanedPhone}`);  // Log which phone got the money
+         
+         // Show success state on button
+         showSuccessState(cashoutAmount, cleanedPhone, withdrawResult);
+         
+         // Display instructions if provided
+         if (withdrawResult.instructions && withdrawResult.instructions.length > 0) {
+             console.log('\n📱 User Instructions:');
+             withdrawResult.instructions.forEach((instruction, i) => {
+                 console.log(`   ${i + 1}. ${instruction}`);
+             });
+         }
+         
+         // Refresh user session after delay (to update balance display from Project B)
+         setTimeout(() => {
+             console.log('🔄 Refreshing user session from Project B...');
+             
+             if (window.crazyStackApp && typeof crazyStackApp.restoreUserSession === 'function') {
+                 crazyStackApp.restoreUserSession(true).then(() => {
+                     console.log('✅ Session refreshed from Project B');
+                 }).catch(err => {
+                     console.warn('⚠️ Session refresh failed:', err);
+                 });
+             }
+             
+             // Reset button to initial state
+             resetCashoutButton();
+             
+         }, 6000); // Wait 6 seconds before resetting
+         
+       } else {
+         
+         // ❌ FAILURE
+         
+         console.error('\n❌ WITHDRAWAL FAILED!');
+         console.error('   Error:', withdrawResult.error);
+         console.error('   Code:', withdrawResult.errorCode || 'N/A');
+         
+         // Build user-friendly error message
+         let userErrorMessage = withdrawResult.error || 'Withdrawal failed. Please try again.';
+         
+         // Add suggestion if available
+         if (withdrawResult.suggestion) {
+             userErrorMessage += `\n\n💡 ${withdrawResult.suggestion}`;
+         }
+         
+         // Add debug info in console only
+         if (withdrawResult.debugInfo) {
+             console.error('   Debug Info:', JSON.stringify(withdrawResult.debugInfo, null, 2));
+         }
+         
+         showToastMessage(`❌ ${userErrorMessage}`, 'error');
+         resetCashoutButton();
+       }
+       
+       } else {
+           showToastMessage('❌ User session not found. Please login again.', 'error');
+           resetCashoutButton();
+       }
+       
+     } catch (unexpectedError) {
+       
+       // ========================================
+       // UNEXPECTED ERROR HANDLER
+       // ========================================
+       
+       console.error('\n💥 UNEXPECTED ERROR IN collect():');
+       console.error('   Message:', unexpectedError.message);
+       console.error('   Stack:', unexpectedError.stack);
+       console.error('   Name:', unexpectedError.name);
+       
+       setLoadingState(false);
+       
+       // ✅ Special handling for "crazy is not defined"
+       if (unexpectedError.message && unexpectedError.message.includes('crazy is not defined')) {
+           console.error('');
+           console.error('╔══════════════════════════════════════════╗');
+           console.error('║  ROOT CAUSE IDENTIFIED:                  ║');
+           console.error('║  withdraw_api.js did NOT load properly!  ║');
+           console.error('╚══════════════════════════════════════════╝');
+           console.error('');
+           console.error('FIX OPTIONS:');
+           console.error('1. Ensure file exists at: API/withdraw_api.js');
+           console.error('2. Check browser console for load errors');
+           console.error('3. Clear browser cache and reload');
+           console.error('4. Contact developer if issue persists');
+           
+           showToastMessage(
+               '❌ Critical system error detected!\n\nThe withdrawal module failed to load.\n\nPlease:\n1. Refresh the page (F5)\n2. Try the withdrawal again\n\nIf this continues, contact support.',
+               'error'
+           );
+       } else {
+           showToastMessage(
+               `❌ An unexpected error occurred: ${unexpectedError.message}\n\nPlease try again or contact support.`,
+               'error'
+           );
+       }
+       
+       resetCashoutButton();
+     }
+   }
+
+   /**
+    * Set loading state on UI elements during withdrawal processing
+    * @param {boolean} loading - True to show loading, false to hide
+    */
+   function setLoadingState(loading) {
+     const cashoutBtn = document.getElementById("confirmCashout");
+     const cancelBtn = document.getElementById('dismissPaymentModal');
+     
+     if (loading) {
+         // Disable and show spinner on cashout button
+         cashoutBtn.disabled = true;
+         cashoutBtn.style.opacity = "0.6";
+         cashoutBtn.innerHTML = `
+           <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+             <div class="loader4"></div>
+             <span>Processing...</span>
+           </div>
+         `;
+         
+         // Show loading on cancel button too
+         cancelBtn.innerHTML = `
+           <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+             <div class="loader1"></div>
+             <span>Please wait...</span>
+           </div>
+         `;
+         
+         console.log('⏳ Loading state activated');
+         
+     } else {
+         // Will be fully reset by resetCashoutButton() or showSuccessState()
+         console.log('⏳ Loading state deactivated');
+     }
+   }
+
+   /**
+    * Show success state after successful withdrawal
+    * @param {number} amount - Withdrawn amount
+    * @param {string} phone - Recipient phone
+    * @param {Object} result - API response data
+    */
+   function showSuccessState(amount, phone, result) {
+     const cashoutBtn = document.getElementById("confirmCashout");
+     
+     // Update button appearance
+     cashoutBtn.disabled = true; // Keep disabled until reset
+     cashoutBtn.style.opacity = "1";
+     cashoutBtn.style.background = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
+     cashoutBtn.innerHTML = `
+       <div style="display:flex;align-items:center;justify-content:center;gap:8px;">
+         <i class="bi bi-check-circle-fill" style="font-size:1.2rem;"></i>
+         <span>✓ Success!</span>
+       </div>
+     `;
+     
+     // Show success toast notification
+     const maskedPhone = `${phone.substr(0, 3)}****${phone.substr(-2)}`;
+     showToastMessage(
+         `✅ Success! MWK ${amount.toFixed(2)} sent to ${maskedPhone}\n\nCheck your phone for USSD prompt.`,
+         'success'
+     );
+     
+     // Clear amount field
+     document.getElementById('paymentAmountInput').value = '';
+     
+     console.log('✅ Success state displayed');
+   }
+
+   /**
+    * Reset cashout button to initial state
+    */
+   function resetCashoutButton() {
+     const cashoutBtn = document.getElementById("confirmCashout");
+     const cancelBtn = document.getElementById('dismissPaymentModal');
+     
+     // Reset cashout button
+     cashoutBtn.disabled = false;
+     cashoutBtn.style.opacity = "1";
+     cashoutBtn.style.background = "linear-gradient(135deg, var(--accent-gold) 0%, #d97706 100%)";
+     cashoutBtn.innerHTML = "Proceed to Cashout";
+     
+     // Reset cancel button
+     cancelBtn.innerHTML = 'Cancel';
+     
+     console.log('🔄 Button state reset to initial');
+   }
+
+   // Make functions globally available
+   window.collect = collect;
+   window.resetCashoutButton = resetCashoutButton;
+
+   console.log('✅ collect() function v5.0 loaded (BULLETPROOF - Handles missing API gracefully)');
+   
+    window.getSessionInfo = function() {
+        if(!window.crazyStackApp || !window.crazyStackApp.sessionManager) {
+            return { error: 'Session manager not initialized' };
+        }
+        const sm = window.crazyStackApp.sessionManager;
+        return {
+            isActive: sm.isActive,
+            isAuthenticated: window.crazyStackApp.isUserAuthenticated,
+            lastActivity: new Date(sm.lastActivityTime).toLocaleTimeString(),
+            remainingTime: sm.getRemainingTime() + ' seconds',
+            player: window.crazyStackApp.playerName || 'Guest'
+        };
+    };
+
+    window.testQuickTimeout = function() {
+        if(window.crazyStackApp && window.crazyStackApp.sessionManager) {
+            SESSION_CONFIG.TIMEOUT_DURATION = 10 * 1000;
+            SESSION_CONFIG.WARNING_DURATION = 3 * 1000;
+            
+            window.crazyStackApp.sessionManager.stop();
+            window.crazyStackApp.sessionManager.start();
+            
+            console.log('TEST MODE: 10-second timeout activated');
+            alert('Test mode: You will be logged out in 10 seconds of inactivity!\n\nWait 7 seconds to see warning.\nWait 3 more seconds for auto-logout.');
+        }
+    };
+    
+       function group(){
+           paymentAmountInput.focus();
+           paymentPhoneInput.disabled=false;
+           confirmCashout.style.display='none'; 
+           confirmPayment.style.display='block';
+           networks('dep');
+
+       }
+    function networks(choice) {
+    let num = document.getElementById("paymentPhoneInput").value.trim();
+    console.log("Number:", num);
+
+    if (num.startsWith("08")) {
+        setTimeout(()=>{document.getElementById("tnm").click();},1000);
+    } else if (num.startsWith("09")) {
+        setTimeout(()=>{document.getElementById("airtel").click();},1000);
+    } else {
+        console.log("Unknown");
+    }
+        setTimeout(()=>{
+          if(choice=='wit'){
+        document.getElementById('paymentModalTitle').innerHTML=document.getElementById('displayBalance').innerHTML;
+        }
+        },1000);
+        
+}
+                                    
+                              
+                                    
+document.addEventListener('keydown', (e) => {
+    if (!soundEngine?.isEnabled) return;
+    
+    switch(e.key) {
+        case 'Enter':  soundEngine.successSound(); break;
+        case 'Escape': soundEngine.errorSound();  break;
+        default:      soundEngine.clickSound();   break;
+    }
+}); 
+
+// =============================================
+// ✅✅✅ DEMO MODE LOADER - FIXED VERSION
+// =============================================
+
+class DemoModeLoader {
+    constructor() {
+        this.container = document.getElementById('demoContainer');
+        this.closeBtn = document.getElementById('demoCloseBtn');
+        this.checkbox = document.getElementById('demoModeCheckbox');
+        this.statusLabel = document.getElementById('demoModeStatusLabel');
+        this.toggleEntry = document.getElementById('demoModeToggleEntry');
+        this.isActive = false;
+        this.isLoaded = false;
+        
+        this.init();
+    }
+    
+    init() {
+        // Bind toggle switch event
+        if(this.checkbox) {
+            this.checkbox.addEventListener('change', (e) => {
+                if(e.target.checked) {
+                    this.activateDemo();
+                } else {
+                    this.deactivateDemo();
+                }
+            });
+        }
+        
+        // Bind close button
+        if(this.closeBtn) {
+            this.closeBtn.addEventListener('click', () => {
+                this.deactivateDemo();
+            });
+        }
+        
+        // Bind click on entire entry (for mobile)
+        if(this.toggleEntry) {
+            this.toggleEntry.addEventListener('click', (e) => {
+                // Don't trigger if clicking on checkbox itself (already handled)
+                if(e.target.type !== 'checkbox' && e.target.tagName !== 'SPAN') {
+                    if(this.checkbox) {
+                        this.checkbox.checked = !this.checkbox.checked;
+                        this.checkbox.dispatchEvent(new Event('change'));
+                    }
+                }
+            });
+        }
+        
+        console.log('✅ Demo Mode Loader Initialized');
+    }
+    
+    activateDemo() {
+        console.log('🎮 Activating Demo Mode...');
+        
+        if(!this.isLoaded) {
+            // Show loading state
+            this.container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#fbbf24;font-size:1.2rem;"><div class="loader4"></div><span style="margin-left:15px;">Loading Demo...</span></div>';
+            this.container.classList.add('active');
+            this.closeBtn.classList.add('visible');
+            
+            // Fetch and load demo.html
+            fetch('demo/demo.html')
+                .then(response => {
+                    if(!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(htmlContent => {
+                    // Inject HTML into container
+                    this.container.innerHTML = htmlContent;
+                    this.isLoaded = true;
+                    this.isActive = true;
+                    
+                    // Update UI
+                    if(this.statusLabel) this.statusLabel.textContent = 'ON';
+                    
+                    // Execute any scripts within the loaded HTML
+                    this.executeScripts(this.container);
+                    
+                    console.log('✅ Demo loaded successfully!');
+                    
+                    if(typeof showToastMessage === 'function') {
+                        showToastMessage('🎮 Demo Mode Activated!', 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Failed to load Demo version:', error);
+                    this.container.innerHTML = `
+                        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#ef4444;text-align:center;padding:40px;">
+                            <i class="bi bi-exclamation-triangle" style="font-size:48px;margin-bottom:20px;"></i>
+                            <h3 style="margin-bottom:10px;">Failed to Load Demo</h3>
+                            <p style="color:#94a3b8;margin-bottom:20px;">Could not find demo version.<br>Please make sure it exists in the same directory.</p>
+                            <button onclick="window.demoLoader.deactivateDemo()" style="padding:12px 24px;background:#ef4444;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:700;">
+                                Close
+                            </button>
+                        </div>
+                    `;
+                    
+                    if(typeof showToastMessage === 'function') {
+                        showToastMessage('Error loading demo version', 'error');
+                    }
+                });
+        } else {
+            // Already loaded, just show it
+            this.container.classList.add('active');
+            this.closeBtn.classList.add('visible');
+            this.isActive = true;
+            if(this.statusLabel) this.statusLabel.textContent = 'ON';
+        }
+    }
+    
+    deactivateDemo() {
+        console.log('⏹️ Deactivating Demo Mode...');
+        
+        this.isActive = false;
+        this.container.classList.remove('active');
+        this.closeBtn.classList.remove('visible');
+        
+        // Update toggle
+        if(this.checkbox) this.checkbox.checked = false;
+        if(this.statusLabel) this.statusLabel.textContent = 'OFF';
+        
+        if(typeof showToastMessage === 'function') {
+            showToastMessage('Demo Mode Deactivated', 'info');
+        }
+    }
+    
+    executeScripts(container) {
+        // Find and execute script tags within loaded content
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            
+            // Copy attributes
+            Array.from(oldScript.attributes).forEach(attr => {
+                newScript.setAttribute(attr.name, attr.value);
+            });
+            
+            // Copy content
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            
+            // Replace old script with new one (triggers execution)
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    }
+}
+
+// Initialize Demo Loader when DOM is ready
+let demoLoader;
+document.addEventListener('DOMContentLoaded', () => {
+    demoLoader = new DemoModeLoader();
+    window.demoLoader = demoLoader;
+});
+
+                             
+// Disable autocomplete on all inputs
+document.querySelectorAll('input').forEach(input => {
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('autocorrect', 'off');
+    input.setAttribute('autocapitalize', 'off');
+    input.setAttribute('spellcheck', 'false');
+});
+
+// Disable text selection on entire page
+document.addEventListener('selectstart', (e) => e.preventDefault());
+
+// Disable context menu (right-click)
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+// Disable copy
+document.addEventListener('copy', (e) => e.preventDefault());
+                                 
+                                    
+    </script>
+                                    
+   <script>
+/**
+ * ============================================
+ * 🎯 FIXED WITHDRAWAL MODAL OPENER - UNIFIED PROJECT B
+ * ============================================
+ * 
+ * ✅ FIX: Phone field is now EDITABLE (not locked to session)
+ * ✅ Pre-fills with account phone but allows changes
+ * ✅ Reads balance from Project B
+ */
+
+function openWithdrawModalFixed() {
+    console.log('\n🎯 OPENING WITHDRAWAL MODAL (FIXED v2)');
+    console.log('═══════════════════════════════════════');
+    
+    // ==========================================
+    // STEP 1: CHECK AUTHENTICATION FIRST!
+    // ==========================================
+    
+    if (!window.crazyStackApp || !window.crazyStackApp.isUserAuthenticated) {
+        console.warn('⚠️ User not authenticated!');
+        showToastMessage('⚠️ Please login before making a withdrawal!', 'warning');
+        
+        // Open login modal after short delay
+        setTimeout(() => {
+            if (window.crazyStackApp && typeof window.crazyStackApp.showLoginModal === 'function') {
+                window.crazyStackApp.showLoginModal();
+            } else {
+                document.getElementById('authModalOverlay').classList.add('active');
+            }
+        }, 1000);
+        
+        return;
+    }
+    
+    // ==========================================
+    // STEP 2: GET AUTHENTICATED USER'S INFO (FOR BALANCE ONLY)
+    // ==========================================
+    
+    const authPhone = window.crazyStackApp.playerPhone;
+    
+    console.log('👤 Authenticated User Phone (for balance verification):', authPhone);
+    console.log('👤 User Name:', window.crazyStackApp.playerName);
+    console.log('💰 Current Balance (from Project B):', window.crazyStackApp.currentBalance);
+    
+    if (!authPhone || authPhone.trim() === '') {
+        console.error('❌ No phone in session! Session corrupted.');
+        showToastMessage('❌ Session error! Please logout and login again.', 'error');
+        return;
+    }
+    
+    // ==========================================
+    // STEP 3: POPULATE PAYMENT MODAL (PHONE IS EDITABLE!)
+    // ==========================================
+    
+    // Show modal first
+    document.getElementById('paymentModalOverlay').classList.add('active');
+    
+    // Set title for withdrawal with live balance from Project B
+    const currentBalance = document.getElementById('displayBalance').textContent;
+    document.getElementById('paymentModalTitle').innerHTML = `
+        <i class="bi bi-arrow-up-circle" style="color:#3b82f6;"></i> 
+        Withdraw Funds<br>
+        <small style="color:#94a3b8;font-weight:400;font-size:0.75rem;">
+            Available: ${currentBalance}
+        </small>
+    `;
+    
+    // ✅✅✅ CRITICAL FIX: Pre-fill BUT allow editing!
+    const phoneInput = document.getElementById('paymentPhoneInput');
+    phoneInput.value = authPhone;           // Pre-fill with account phone as default
+    phoneInput.disabled = false;            // ✅ UNLOCKED - User can change to different phone!
+    
+    console.log('✅ Phone input populated (EDITABLE):', authPhone);
+    console.log('ℹ️ User can modify phone number if withdrawing to different account');
+    
+    // Detect network automatically based on pre-filled phone
+    networks('wit');
+    
+    // Show cashout button, hide deposit button
+    document.getElementById('confirmCashout').style.display = 'block';
+    document.getElementById('confirmCashout').style.display = 'block';  // Ensure visible!
+    document.getElementById('confirmPayment').style.display = 'none';
+    
+    // Focus on amount field after short delay
+    setTimeout(() => {
+        const amountInput = document.getElementById('paymentAmountInput');
+        amountInput.value = '';  // Clear previous amount
+        amountInput.focus();
+    }, 300);
+    
+    console.log('✅✅✅ Withdrawal modal opened successfully (PHONE EDITABLE - BUG FIXED!)');
+    console.log('═══════════════════════════════════════\n');
+}
+
+/**
+ * Override the collect() function to add extra debugging
+ * Wrap the existing collect() function if needed
+ */
+(function() {
+    const originalCollect = window.collect;
+    
+    window.collect = async function(rule) {
+        console.log('\n📞 collect() called with rule:', rule);
+        console.log('   Phone input value:', document.getElementById('paymentPhoneInput')?.value);
+        console.log('   Authenticated phone (Project B):', window.crazyStackApp?.playerPhone);
+        
+        // Call original function
+        return originalCollect.apply(this, arguments);
+    };
+})();
+
+console.log('✅ Fixed withdrawal functions loaded (UNIFIED PROJECT B - PHONE BUG FIXED)');
+</script>                                 
+
+<!-- =============================================
+     🔍 DEBUG: Phone Number Tracker (TEMPORARY)
+     Remove this section after bug is confirmed fixed
+     ============================================= -->
+<script>
+// =============================================
+// 🔍 DEBUG: Phone Number Tracker
+// =============================================
+window.PhoneDebugTracker = {
+    originalInput: null,
+    sentToWebhook: null,
+    sessionPhone: null,
+    
+    log: function(stage, phone) {
+        console.log(`📞 [${stage}] Phone:`, phone);
+        
+        if (stage === 'INPUT') this.originalInput = phone;
+        if (stage === 'WEBHOOK') this.sentToWebhook = phone;
+        if (stage === 'SESSION') this.sessionPhone = phone;
+        
+        // Alert if mismatch detected
+        if (this.originalInput && this.sentToWebhook) {
+            if (this.originalInput !== this.sentToWebhook) {
+                console.error('🚨🚨🚨 PHONE MISMATCH DETECTED! 🚨🚨🚨');
+                console.error('   User Entered:', this.originalInput);
+                console.error('   Sent to Webhook:', this.sentToWebhook);
+                console.error('   Session Phone:', this.sessionPhone);
+                
+                showToastMessage(
+                    `⚠️ Debug: Phone changed from ${this.originalInput} to ${this.sentToWebhook}`,
+                    'warning'
+                );
+            } else {
+                console.log('✅ Phone match verified: Input = Webhook');
+            }
+        }
+    },
+    
+    reset: function() {
+        this.originalInput = null;
+        this.sentToWebhook = null;
+        this.sessionPhone = null;
+    }
+};
+
+// Hook into phone input changes
+document.addEventListener('DOMContentLoaded', () => {
+    const phoneInput = document.getElementById('paymentPhoneInput');
+    if (phoneInput) {
+        phoneInput.addEventListener('change', (e) => {
+            console.log('📝 Phone input changed to:', e.target.value);
+            window.PhoneDebugTracker.log('INPUT', e.target.value);
+        });
+        
+        phoneInput.addEventListener('blur', (e) => {
+            console.log('📝 Phone input blurred. Current value:', e.target.value);
+        });
+        
+        // Also log on keyup for real-time tracking
+        phoneInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter' || e.target.value.length === 10) {
+                console.log('📝 Phone entered:', e.target.value);
+            }
+        });
+    }
+    
+    console.log('✅ Phone Debug Tracker initialized');
+});
+</script>
+
+<!-- =============================================
+     ✅✅✅ SYSTEM HEALTH CHECK ON PAGE LOAD
+     ============================================= -->
+<script>
+/**
+ * Verifies critical dependencies are loaded after page initialization
+ */
+window.addEventListener('DOMContentLoaded', () => {
+    // Wait 2 seconds for all scripts to finish loading
+    setTimeout(() => {
+        console.log('\n====================================');
+        console.log('🔍 SYSTEM HEALTH CHECK');
+        console.log('====================================\n');
+        
+        let allHealthy = true;
+        
+        // Check 1: crazy object (withdrawal API)
+        if (typeof crazy === 'undefined') {
+            console.error('❌ FAIL: "crazy" object not defined');
+            console.error('   → withdraw_api.js failed to load or has syntax error');
+            allHealthy = false;
+        } else {
+            console.log('✅ PASS: "crazy" object defined');
+            
+            // Check 2: crazy.withdraw method
+            if (typeof crazy.withdraw !== 'function') {
+                console.error('❌ FAIL: crazy.withdraw is not a function');
+                console.error('   → Method missing from API object');
+                allHealthy = false;
+            } else {
+                console.log('✅ PASS: crazy.withdraw() method available');
+            }
+        }
+        
+        // Check 3: crazyStackApp
+        if (typeof window.crazyStackApp === 'undefined') {
+            console.error('❌ FAIL: crazyStackApp not defined');
+            console.error('   → main.js may have failed to load');
+            allHealthy = false;
+        } else {
+            console.log('✅ PASS: crazyStackApp initialized');
+        }
+        
+        // Summary
+        console.log('\n====================================');
+        if (allHealthy) {
+            console.log('✅ ALL SYSTEMS OPERATIONAL');
+            console.log('   Withdrawals should work correctly');
+        } else {
+            console.error('⚠️ SYSTEM ISSUES DETECTED');
+            console.error('   Some features may not work properly');
+            console.error('   See errors above for details');
+        }
+        console.log('====================================\n');
+        
+        // Store health status globally
+        window.systemHealth = {
+            healthy: allHealthy,
+            timestamp: new Date().toISOString(),
+            checks: {
+                crazyDefined: typeof crazy !== 'undefined',
+                withdrawAvailable: typeof crazy?.withdraw === 'function',
+                appInitialized: typeof window.crazyStackApp !== 'undefined'
+            }
+        };
+        
+    }, 2000);
+});
+</script>
+                                
+                                
+                                <!-- ============================================
+     🆘 EMERGENCY: Complete Withdrawal System (INLINE)
+     ============================================
+     This bypasses ANY issues with external withdraw_api.js
+     Defines window.crazy directly in your HTML page!
+-->
+<!-- =============================================
+     ✅ SECURE WITHDRAWAL SYSTEM (NO SECRETS)
+     ============================================= -->
+<script>
+console.log('🔧 Loading SECURE withdrawal system (v2)...');
+
+// Define crazy object
+window.crazy = {
+    // Operator config for UI reference only (Not sensitive)
+    OPERATORS: {
+        AIRTEL: { name: 'Airtel Money', ussd_code: '*303#' },
+        TNM:    { name: 'TNM mPamba',   ussd_code: '*456#' }
+    },
+
+    /**
+     * Normalize phone number
+     */
+    normalizePhone: function(phone) {
+        if (!phone) return '';
+        let digits = phone.replace(/\D/g, '');
+        if (digits.startsWith('265')) digits = '0' + digits.slice(3);
+        if (digits.length === 9 && !digits.startsWith('0')) digits = '0' + digits;
+        return digits;
+    },
+
+    /**
+     * Detect network from phone
+     */
+    detectProvider: function(phone) {
+        if (!phone) return this.OPERATORS.AIRTEL;
+        const cleaned = phone.replace(/\D/g, '');
+        if (/^(088|087|081)/.test(cleaned)) return this.OPERATORS.TNM;
+        return this.OPERATORS.AIRTEL;
+    },
+
+    /**
+     * ✅ SECURE WITHDRAWAL - Calls PHP Backend
+     * The PHP backend holds the key and talks to PayChangu.
+     */
+    withdraw: async function(phone, amount) {
+        console.log('\n💰💰💸 SECURE WITHDRAWAL INITIATED 💸💰💰');
+        console.log(`📱 Phone: ${phone} | 💵 Amount: MWK ${amount}`);
+        
+        try {
+            // 1. CLIENT-SIDE VALIDATION
+            if (!window.crazyStackApp || !window.crazyStackApp.isUserAuthenticated) {
+                return { success: false, error: 'Not logged in', errorCode: 'NOT_AUTHENTICATED' };
+            }
+            
+            const normalizedPhone = this.normalizePhone(phone);
+            if (!normalizedPhone || normalizedPhone.length !== 10) {
+                return { success: false, error: `Invalid phone format: ${phone}`, errorCode: 'INVALID_PHONE' };
+            }
+            
+            const numericAmount = Number(amount);
+            if (isNaN(numericAmount) || numericAmount < 50) {
+                return { success: false, error: 'Minimum withdrawal is MWK 50', errorCode: 'AMOUNT_TOO_LOW' };
+            }
+            if (numericAmount > 100000) {
+                return { success: false, error: 'Maximum withdrawal is MWK 100,000', errorCode: 'AMOUNT_TOO_HIGH' };
+            }
+
+            const provider = this.detectProvider(normalizedPhone);
+            console.log(`   ✅ Provider: ${provider.name}`);
+
+            // 2. CALL SECURE PHP BACKEND
+            // The PHP file verifies balance and holds the secret key
+            console.log('\n🔒 Sending secure request to PHP backend...');
+            
+            const response = await fetch('API/withdraw_api.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone: normalizedPhone,
+                    amount: numericAmount,
+                    sessionPhone: window.crazyStackApp.playerPhone // PHP checks if this matches the session
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            console.log('📥 Backend Response:', data);
+
+            // 3. HANDLE RESPONSE
+            if (data.success) {
+                // Update local app state if successful
+                if (window.crazyStackApp && data.new_balance !== undefined) {
+                    window.crazyStackApp.currentBalance = data.new_balance;
+                    if (typeof window.crazyStackApp.updateBalanceDisplay === 'function') {
+                        window.crazyStackApp.updateBalanceDisplay();
+                    }
+                }
+                
+                return {
+                    success: true,
+                    message: data.message,
+                    transaction: data.transaction,
+                    instructions: data.instructions
+                };
+            } else {
+                // Backend returned a logical error (insufficient funds, etc)
+                return {
+                    success: false,
+                    error: data.error || 'Unknown error occurred',
+                    errorCode: 'BACKEND_ERROR'
+                };
+            }
+
+        } catch (err) {
+            console.error('💥 Network/Fetch Error:', err);
+            return { 
+                success: false, 
+                error: 'Connection failed. Please check internet.', 
+                errorCode: 'NETWORK_ERROR' 
+            };
+        }
+    }
+};
+
+console.log('✅✅✅ SECURE WITHDRAWAL SYSTEM LOADED!');
+console.log('   → No API Keys in JavaScript!');
+console.log('   → All requests routed to API/withdraw_api.php\n');
+</script>
+
+<!-- ============================================
+     💫 BALANCE COUNT-UP ANIMATION (SIMPLE & WORKING)
+     ============================================ -->
+<script>
+/**
+ * Balance Counter - Simple & Reliable Version
+ * Call window.showBalance(newAmount) whenever balance changes!
+ */
+(function() {
+    let currentVal = 0;
+    let rafId = null;
+    const display = document.getElementById('displayBalance');
+    
+    if (!display) {
+        console.warn('⚠️ #displayBalance not found!');
+        return;
+    }
+    
+    function format(n) {
+        return 'MWK ' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    
+    function set(n) {
+        display.textContent = format(n);
+        currentVal = n;
+    }
+    
+    /**
+     * MAIN FUNCTION - Call this to show new balance with animation!
+     * @param {number} target - New balance amount
+     * @param {number} [duration] - Optional ms (auto-calculated if omitted)
+     */
+    window.showBalance = function(target, duration) {
+        // Validate
+        target = parseFloat(target) || 0;
+        
+        // Auto-calculate duration based on jump size
+        if (!duration) {
+            const diff = Math.abs(target - currentVal);
+            if (diff < 100) duration = 500;
+            else if (diff < 500) duration = 900;
+            else if (diff < 2000) duration = 1400;
+            else duration = 2000;
+        }
+        
+        console.log(`💰 Balance: ${format(currentVal)} → ${format(target)} (${duration}ms)`);
+        
+        // Cancel previous animation
+        if (rafId) cancelAnimationFrame(rafId);
+        
+        const start = performance.now();
+        const from = currentVal;
+        
+        function tick(now) {
+            const elapsed = now - start;
+            const p = Math.min(elapsed / duration, 1);
+            
+            // Ease out cubic (fast → slow)
+            const ease = 1 - Math.pow(1 - p, 3);
+            
+            set(from + (target - from) * ease);
+            
+            if (p < 1) {
+                rafId = requestAnimationFrame(tick);
+            } else {
+                set(target); // Ensure exact final value
+                rafId = null;
+            }
+        }
+        
+        rafId = requestAnimationFrame(tick);
+    };
+    
+    /**
+     * Instantly set balance (no animation)
+     */
+    window.setBalanceInstant = function(val) {
+        if (rafId) cancelAnimationFrame(rafId);
+        set(parseFloat(val) || 0);
+    };
+    
+    /**
+     * Get current displayed value
+     */
+    window.getDisplayedBalance = function() {
+        return currentVal;
+    };
+    
+    // Initialize display
+    set(0);
+    
+    console.log('✅ Balance Counter Loaded! Use: window.showBalance(1500.50)');
+})();
+</script>
+
+<!-- ============================================
+     💫 BALANCE COUNT-UP ANIMATION (SIMPLE & WORKING)
+     ============================================ -->
+<script>
+/**
+ * Balance Counter - Simple & Reliable Version
+ * Call window.showBalance(newAmount) whenever balance changes!
+ */
+(function() {
+    let currentVal = 0;
+    let rafId = null;
+    const display = document.getElementById('displayBalance');
+    
+    if (!display) {
+        console.warn('⚠️ #displayBalance not found!');
+        return;
+    }
+    
+    function format(n) {
+        return 'MWK ' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+    
+    function set(n) {
+        display.textContent = format(n);
+        currentVal = n;
+    }
+    
+    /**
+     * MAIN FUNCTION - Call this to show new balance with animation!
+     * @param {number} target - New balance amount
+     * @param {number} [duration] - Optional ms (auto-calculated if omitted)
+     */
+    window.showBalance = function(target, duration) {
+        // Validate
+        target = parseFloat(target) || 0;
+        
+        // Auto-calculate duration based on jump size
+        if (!duration) {
+            const diff = Math.abs(target - currentVal);
+            if (diff < 100) duration = 500;
+            else if (diff < 500) duration = 900;
+            else if (diff < 2000) duration = 1400;
+            else duration = 2000;
+        }
+        
+        console.log(`💰 Balance: ${format(currentVal)} → ${format(target)} (${duration}ms)`);
+        
+        // Cancel previous animation
+        if (rafId) cancelAnimationFrame(rafId);
+        
+        const start = performance.now();
+        const from = currentVal;
+        
+        function tick(now) {
+            const elapsed = now - start;
+            const p = Math.min(elapsed / duration, 1);
+            
+            // Ease out cubic (fast → slow)
+            const ease = 1 - Math.pow(1 - p, 3);
+            
+            set(from + (target - from) * ease);
+            
+            if (p < 1) {
+                rafId = requestAnimationFrame(tick);
+            } else {
+                set(target); // Ensure exact final value
+                rafId = null;
+            }
+        }
+        
+        rafId = requestAnimationFrame(tick);
+    };
+    
+    /**
+     * Instantly set balance (no animation)
+     */
+    window.setBalanceInstant = function(val) {
+        if (rafId) cancelAnimationFrame(rafId);
+        set(parseFloat(val) || 0);
+    };
+    
+    /**
+     * Get current displayed value
+     */
+    window.getDisplayedBalance = function() {
+        return currentVal;
+    };
+    
+    // Initialize display
+    set(0);
+    
+    console.log('✅ Balance Counter Loaded! Use: window.showBalance(1500.50)');
+})();
+</script>
+</body>
+</html>
