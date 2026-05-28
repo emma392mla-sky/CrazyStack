@@ -1616,7 +1616,7 @@ class CrazyStackApp {
         pB.disabled = true;
 
         try {
-            const response = await fetch('mobile_pay.php', {
+            const response = await fetch('https://crazy-stack.vercel.app/api/mobile_pay.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestData)

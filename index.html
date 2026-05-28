@@ -297,16 +297,16 @@
     </a>
 
 
-    <script src="API/main.js?v=<?= time() ?>" 
+    <script src="api/main.js?v=5" 
             onload="console.log('main.js loaded successfully')" 
             onerror="console.error('FAILED to load main.js')"></script>
                                 
             
-    <script src="API/withdraw_api.js?v=<?= time() ?>" 
+    <script src="api/withdraw_api.js?v=55" 
             onload="console.log('withdraw_api.js loaded - crazy object ready')" 
             onerror="handleWithdrawAPILoadError()"></script>
                                 
-    <script src="API/index.js?v=<?= time() ?>" 
+    <script src="api/index.js?v=555" 
             onload="console.log('index.js loaded - crazy object ready')" 
             onerror="handleWithdrawAPILoadError()"></script>
     
@@ -317,13 +317,13 @@
         console.error('   This will cause "crazy is not defined" error');
         console.error('');
         console.error('   POSSIBLE CAUSES:');
-        console.error('   1. File does not exist at: API/withdraw_api.js');
+        console.error('   1. File does not exist at: api/withdraw_api.js');
         console.error('   2. Server returned 404/500 error');
         console.error('   3. Network connectivity issues');
         console.error('   4. JavaScript syntax error in the file');
         console.error('');
         console.error('   IMMEDIATE FIX:');
-        console.error('   1. Check that API/withdraw_api.js exists on server');
+        console.error('   1. Check that api/withdraw_api.js exists on server');
         console.error('   2. Verify file permissions (should be 644)');
         console.error('   3. Test URL directly in browser');
         
@@ -887,7 +887,7 @@
            console.error('╚══════════════════════════════════════════╝');
            console.error('');
            console.error('FIX OPTIONS:');
-           console.error('1. Ensure file exists at: API/withdraw_api.js');
+           console.error('1. Ensure file exists at: api/withdraw_api.js');
            console.error('2. Check browser console for load errors');
            console.error('3. Clear browser cache and reload');
            console.error('4. Contact developer if issue persists');
@@ -1574,7 +1574,7 @@ window.crazy = {
             // The PHP file verifies balance and holds the secret key
             console.log('\n🔒 Sending secure request to PHP backend...');
             
-            const response = await fetch('API/withdraw_api.php', {
+            const response = await fetch('https://crazy-stack.vercel.app/api/withdraw_api.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1631,9 +1631,7 @@ window.crazy = {
     }
 };
 
-console.log('✅✅✅ SECURE WITHDRAWAL SYSTEM LOADED!');
-console.log('   → No API Keys in JavaScript!');
-console.log('   → All requests routed to API/withdraw_api.php\n');
+
 </script>
 
 <!-- ============================================
