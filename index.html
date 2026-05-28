@@ -296,24 +296,14 @@
         <i class="bi bi-whatsapp"></i>
     </a>
 
-
-    <script src="/main.js" 
-            onload="console.log('main.js loaded successfully')" 
-            onerror="console.error('FAILED to load main.js')"></script>
-                                
-            
-    <script src="/withdraw.js?v=55" 
-            onload="console.log('withdraw_api.js loaded - crazy object ready')" 
-            onerror="handleWithdrawAPILoadError()"></script>
-                                
-    <script src="/index.js?v=555" 
-            onload="console.log('index.js loaded - crazy object ready')" 
-            onerror="handleWithdrawAPILoadError()"></script>
+<script src="/main.js"></script>
+<script src="/withdraw.js?v=55"></script>
+<script src="/index.js?v=555"></script>
     
 
 <script>
     function handleWithdrawAPILoadError() {
-        console.error('🚨🚨🚨 CRITICAL ERROR: withdraw_api.js FAILED TO LOAD!');
+        console.error('CRITICAL ERROR: withdraw_api.js FAILED TO LOAD!');
         console.error('   This will cause "crazy is not defined" error');
         console.error('');
         console.error('   POSSIBLE CAUSES:');
